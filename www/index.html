@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Macsus AI Advertising</title>
+  
+  <meta property="og:url" content="https://macsus-ai-advertising-content.netlify.app/" />
+  <meta property="og:title" content="Macsus AI Advertising" />
+  <meta property="og:description" content="Generator Konten AI Cerdas untuk Macsus Company" />
+  <meta property="og:image" content="https://macsus-ai-advertising-content.netlify.app/ikon.png" />
+  <meta property="og:type" content="website" />
+  
+  <link rel="icon" href="ikon.png" type="image/png">
+  <link rel="apple-touch-icon" href="ikon.png">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Font Profesional: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+<div id="splash-screen">
+  <video id="splash-video" src="logo-macsus.mp4" autoplay muted playsinline></video>
+</div>
+<header class="app-header">
+  <button class="header-icon-btn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+  <img src="ikon.png" alt="Macsus Logo" class="header-logo" />
+  <div class="header-info">
+    <span class="header-title">Macsus AI</span>
+    <span class="header-sub">Content Generator</span>
+  </div>
+  <button class="header-icon-btn" onclick="toggleSettings()">
+    <i class="fas fa-cog"></i>
+  </button>
+</header>
+
+<div class="overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="app-sidebar">
+  <div class="sidebar-header">
+    <h3 class="sidebar-title">Riwayat Sesi</h3>
+    <button class="sidebar-close" onclick="toggleSidebar()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="sidebar-body">
+    <!-- Tombol Sesi Baru -->
+    <button class="btn-new-session" onclick="newSession()">
+      <i class="fas fa-plus"></i> Buat Sesi Baru
+    </button>
+    <!-- List Riwayat -->
+    <div id="history-list"></div>
+  </div>
+</aside>
+
+<div class="overlay" id="settings-overlay" onclick="toggleSettings()"></div>
+<div class="modal" id="settings-modal">
+  <div class="modal-header">
+    <h3>Pengaturan Aplikasi</h3>
+    <button onclick="toggleSettings()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size: 13px; color: var(--t2); margin-bottom: 15px;">
+      Gunakan aplikasi ini seperti aplikasi native di HP atau PC Anda.
+    </p>
+    <button class="btn-pwa" id="btn-install-pwa" style="display: none;" onclick="installPWA()">
+      <i class="fas fa-download"></i> Install PWA
+    </button>
+    <!-- TOMBOL INSTALL APK -->
+    <button class="btn-pwa" id="btn-download-apk" style="margin-top:10px; background:var(--green-lo); border-color:var(--green); color:var(--green);" onclick="downloadAPK()">
+      <i class="fab fa-android"></i> Install APK
+    </button>
+    <button class="btn-pwa btn-danger" onclick="clearHistory()">
+      <i class="fas fa-trash-alt"></i> Hapus Semua Riwayat
+    </button>
+    
+    <!-- Bagian Narsis Corporate -->
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--b1); text-align: center;">
+      <p style="font-family: var(--f-mono); font-size: 12px; font-weight: 700; color: var(--t2); letter-spacing: 0.15em; margin-bottom: 6px;">
+        BY : DEDE
+      </p>
+      <p style="font-size: 11px; color: var(--t3);">
+        &copy; 2026 Zadostrix Inc. All rights reserved.
+      </p>
+    </div>
+  </div>
+</div>
+
+<main class="app-main">
+  <!-- Container Input yang akan disembunyikan saat hasil AI muncul -->
+  <div id="input-container">
+    <p class="section-eyebrow">Pilih Mode Konten</p>
+    <div class="mode-grid">
+      <button class="mode-card ig" id="btn-ig" onclick="setMode('ig')">
+        <div class="mode-status"></div>
+        <i class="fab fa-instagram mode-icon"></i>
+        <span class="mode-name">Instagram</span>
+        <span class="mode-desc">Konten, dokumen & caption IG</span>
+      </button>
+      <button class="mode-card gb" id="btn-gbisnis" onclick="setMode('gbisnis')">
+        <div class="mode-status"></div>
+        <i class="fas fa-store mode-icon"></i>
+        <span class="mode-name">Google Bisnis</span>
+        <span class="mode-desc">Storytelling postingan</span>
+      </button>
+    </div>
+
+    <div class="form-panel" id="ig-fields">
+      <div class="panel-header">
+        <div class="panel-dot ig"></div>
+        <span class="panel-title ig">Mode Instagram</span>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <label class="field-label">Layanan / Masalah Hari Ini</label>
+          <textarea id="serviceInfo" rows="3" placeholder="Contoh: Overheat Treatment laptop gaming Asus ROG di Surabaya."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Judul / Topik Konten IG</label>
+          <input type="text" id="contentTitle" placeholder="Contoh: Laptop Terkena Tumpahan Air (Liquid Spill)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-panel" id="gbisnis-fields">
+      <div class="panel-header">
+        <div class="panel-dot gb"></div>
+        <span class="panel-title gb">Mode Google Bisnis</span>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <label class="field-label">Data Report Pelanggan</label>
+          <textarea id="reportData" rows="10" placeholder="Paste struktur data report di sini... Contoh:&#10;REPORT:&#10;ID Pelanggan : M20816&#10;Nama Pelanggan : Tyas CS Wisma Tropodo ..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes-card" id="notes-card">
+      <div class="notes-card-header">
+        <span class="notes-card-title">Catatan Tambahan</span>
+        <span class="field-optional">opsional</span>
+      </div>
+      <div class="notes-card-body">
+        <input type="text" id="command" placeholder="Contoh: Fokus pada promo KMM, tonjolkan harga akhirnya" />
+      </div>
+    </div>
+
+    <button class="btn-generate" id="submit-btn" onclick="generateAds()">
+      <i class="fas fa-magic"></i> Generate Konten
+    </button>
+  </div>
+
+  <!-- Loading & Error -->
+  <div class="loading-card" id="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">
+      <strong>AI sedang memproses</strong>
+      <span>Mohon tunggu sebentar <span class="dots"><span>.</span><span>.</span><span>.</span></span></span>
+    </div>
+  </div>
+  <div class="error-card" id="error-box">
+    <i class="fas fa-exclamation-triangle icon"></i>
+    <span id="error-text"></span>
+  </div>
+
+  <!-- Output Area -->
+  <div class="output-area" id="output-wrapper">
+    <div class="output-topbar">
+      <div>
+        <div class="output-eyebrow">Hasil Generate</div>
+        <div class="output-title" id="output-title"></div>
+      </div>
+      <button class="btn-copy-all" onclick="copyAll()"><i class="fas fa-copy"></i> Salin Semua</button>
+    </div>
+
+    <div class="tab-row" id="ig-tabs" style="display:none">
+      <button class="tab-pill active" onclick="switchTab(0)"><i class="fas fa-book"></i> NotebookLM</button>
+      <button class="tab-pill" onclick="switchTab(1)"><i class="fas fa-file-alt"></i> Dok. Sumber</button>
+      <button class="tab-pill" onclick="switchTab(2)"><i class="fas fa-font"></i> Caption IG</button>
+    </div>
+
+    <div class="out-card active" id="section-notebooklm" style="display:none">
+      <div class="out-card-header">
+        <div class="out-card-label">
+          <div class="out-num">1</div>
+          <span class="out-card-name">Prompt NotebookLM</span>
+        </div>
+        <button class="btn-copy-sec" onclick="copySection('notebooklm-body')">Salin</button>
+      </div>
+      <div class="out-card-body" id="notebooklm-body"></div>
+    </div>
+
+    <div class="out-card" id="section-dokumen" style="display:none">
+      <div class="out-card-header">
+        <div class="out-card-label">
+          <div class="out-num">2</div>
+          <span class="out-card-name">Dokumen Sumber Data</span>
+        </div>
+        <button class="btn-copy-sec" onclick="copySection('dokumen-body')">Salin</button>
+      </div>
+      <div class="out-card-body" id="dokumen-body"></div>
+    </div>
+
+    <div class="out-card" id="section-caption" style="display:none">
+      <div class="out-card-header">
+        <div class="out-card-label">
+          <div class="out-num">3</div>
+          <span class="out-card-name">Caption Instagram</span>
+        </div>
+        <button class="btn-copy-sec" onclick="copySection('caption-body')">Salin</button>
+      </div>
+      <div class="out-card-body" id="caption-body"></div>
+    </div>
+
+    <div class="out-card" id="section-gbisnis" style="display:none">
+      <div class="out-card-header">
+        <div class="out-card-label">
+          <div class="out-num gb"><i class="fab fa-google"></i></div>
+          <span class="out-card-name">Postingan Google Bisnis</span>
+        </div>
+        <button class="btn-copy-sec" onclick="copySection('gbisnis-body')">Salin</button>
+      </div>
+      <div class="out-card-body" id="gbisnis-body"></div>
+      <div class="char-row">
+        <div class="char-track"><div class="char-fill ok" id="char-fill" style="width:0%"></div></div>
+        <span class="char-text" id="char-label">0 / 1500</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i> Teks disalin!</div>
+<script src="script.js"></script>
+</body>
+</html>
