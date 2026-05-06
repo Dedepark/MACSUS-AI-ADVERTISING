@@ -1,6 +1,6 @@
 // PENTING: Tiap kali kamu update codingan dan mau upload ke Netlify, 
 // ganti angka v2 ini jadi v3, v4, dan seterusnya.
-const CACHE_NAME = "macsus-ai-cache-v14"; 
+const CACHE_NAME = "macsus-ai-cache-v15"; 
 
 const urlsToCache = [
   "./",
