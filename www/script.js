@@ -409,6 +409,6 @@ window.addEventListener('DOMContentLoaded', () => {
 /* --- LOGIKA DOWNLOAD APK --- */
 function downloadAPK() {
   // Ubah USERNAME dan NAMA_REPO sesuai link GitHub kamu!
-  const githubReleaseUrl = "https://github.com/DedePark/NAMA_REPO/releases/download/latest/macsus-ai.apk";
+  const githubReleaseUrl = "https://github.com/DedePark/MACSUS-AI-ADVERTISING/releases/download/latest/macsus-ai.apk";
   window.location.href = githubReleaseUrl;
 }
