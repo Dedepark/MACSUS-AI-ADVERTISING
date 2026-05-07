@@ -21,12 +21,39 @@
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 <div id="splash-screen">
   <video id="splash-video" src="logo-macsus.mp4" autoplay muted playsinline></video>
 </div>
+
+<div id="auth-screen">
+  <div class="auth-card">
+    <img src="ikon.png" alt="Macsus Logo" class="auth-logo">
+    <h2 class="auth-title">Masuk ke Macsus AI</h2>
+    <p class="auth-sub">Silakan login untuk menggunakan sistem</p>
+    
+    <div class="field" style="margin-bottom: 12px;">
+      <input type="email" id="auth-email" placeholder="Email Anda" />
+    </div>
+    <div class="field" style="margin-bottom: 16px;">
+      <input type="password" id="auth-password" placeholder="Password" />
+    </div>
+    
+    <div id="auth-error" class="auth-error"></div>
+
+    <button class="btn-generate" style="margin-bottom: 12px; padding: 12px;" onclick="handleAuth('login')" id="btn-login">
+      <i class="fas fa-sign-in-alt"></i> Login
+    </button>
+    <button class="btn-pwa" style="background:var(--s2); border-color:var(--b2);" onclick="handleAuth('register')" id="btn-register">
+      <i class="fas fa-user-plus"></i> Buat Akun Baru
+    </button>
+  </div>
+</div>
+
 <header class="app-header">
   <button class="header-icon-btn" onclick="toggleSidebar()">
     <i class="fas fa-bars"></i>
@@ -34,7 +61,7 @@
   <img src="ikon.png" alt="Macsus Logo" class="header-logo" />
   <div class="header-info">
     <span class="header-title">Macsus AI</span>
-    <span class="header-sub">Content Generator</span>
+    <span class="header-sub" id="user-email-display">Content Generator</span>
   </div>
   <button class="header-icon-btn" onclick="toggleSettings()">
     <i class="fas fa-cog"></i>
@@ -54,6 +81,11 @@
       <i class="fas fa-plus"></i> Buat Sesi Baru
     </button>
     <div id="history-list"></div>
+  </div>
+  <div style="padding: 16px; border-top: 1px solid var(--b1);">
+    <button class="btn-pwa btn-danger" onclick="handleLogout()">
+      <i class="fas fa-sign-out-alt"></i> Logout Akun
+    </button>
   </div>
 </aside>
 
@@ -75,8 +107,8 @@
     <button class="btn-pwa" id="btn-download-apk" style="margin-top:10px; background:var(--green-lo); border-color:var(--green); color:var(--green);" onclick="downloadAPK()">
       <i class="fab fa-android"></i> Install APK
     </button>
-    <button class="btn-pwa btn-danger" onclick="clearHistory()">
-      <i class="fas fa-trash-alt"></i> Hapus Semua Riwayat
+    <button class="btn-pwa btn-danger" style="margin-top:10px;" onclick="clearHistory()">
+      <i class="fas fa-trash-alt"></i> Hapus Semua Riwayat Lokal
     </button>
     
     <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--b1); text-align: center;">
