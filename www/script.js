@@ -34,23 +34,51 @@ async function installPWA() {
   }
 }
 
-/* --- LOGIKA AUTHENTICATION --- */
-// Mengecek status login saat aplikasi dimuat
-supabase.auth.onAuthStateChange((event, session) => {
+/* State & Storage Riwayat */
+let currentMode = null;
+let currentTab  = 0;
+// Kita tidak lagi pakai localStorage. Data akan diisi dari Supabase.
+let historyData = []; 
+
+/* --- LOGIKA AUTHENTICATION & FETCH DB --- */
+supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
     if (session) {
       currentUser = session.user;
       document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('user-email-display').innerText = currentUser.email;
+      // Tarik riwayat user dari Supabase saat berhasil login
+      await fetchUserHistory(); 
     } else {
       document.getElementById('auth-screen').classList.remove('hidden');
     }
   } else if (event === 'SIGNED_OUT') {
     currentUser = null;
+    historyData = []; // Kosongkan riwayat di layar
+    renderSidebar();
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('user-email-display').innerText = 'Content Generator';
   }
 });
+
+async function fetchUserHistory() {
+  const { data, error } = await supabase
+    .from('user_history')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(50); // Tarik 50 riwayat terakhir
+  
+  if (!error && data) {
+    historyData = data.map(item => ({
+      id: item.id,
+      title: item.title,
+      mode: item.mode,
+      date: new Date(item.created_at).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }),
+      data: item.data
+    }));
+    renderSidebar();
+  }
+}
 
 async function handleAuth(action) {
   const email = document.getElementById('auth-email').value.trim();
@@ -80,9 +108,7 @@ async function handleAuth(action) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       error = signInError;
     }
-
     if (error) throw error;
-
   } catch (error) {
     errDiv.innerText = error.message.includes('Invalid login') 
       ? 'Email atau password salah.' 
@@ -99,11 +125,6 @@ async function handleLogout() {
     toggleSidebar();
   }
 }
-
-/* State & Storage Riwayat */
-let currentMode = null;
-let currentTab  = 0;
-let historyData = JSON.parse(localStorage.getItem('macsus_history')) || [];
 
 /* UI Toggles */
 function toggleSidebar() {
@@ -193,10 +214,36 @@ function updateCharCounter(count) {
   label.className = 'char-text' + (count > 1500 ? ' over' : '');
 }
 
-function saveSession(title, mode, dataObj) {
-  historyData.unshift({ id: Date.now(), title, mode, date: new Date().toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }), data: dataObj });
-  if(historyData.length > 50) historyData.pop();
-  localStorage.setItem('macsus_history', JSON.stringify(historyData));
+/* --- SAVE HISTORY KE SUPABASE --- */
+async function saveSession(title, mode, dataObj) {
+  if (!currentUser) return;
+
+  const realTitle = title || (mode === 'gbisnis' ? 'Google Bisnis Post' : 'Tanpa Judul');
+  
+  // 1. Simpan ke database
+  const { data, error } = await supabase
+    .from('user_history')
+    .insert([{ 
+      user_id: currentUser.id, 
+      title: realTitle, 
+      mode: mode, 
+      data: dataObj 
+    }])
+    .select();
+
+  // 2. Update UI lokal jika berhasil
+  if (!error && data && data.length > 0) {
+    const item = data[0];
+    historyData.unshift({ 
+      id: item.id, 
+      title: item.title, 
+      mode: item.mode, 
+      date: new Date(item.created_at).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }), 
+      data: item.data 
+    });
+    if(historyData.length > 50) historyData.pop();
+    renderSidebar();
+  }
 }
 
 function renderSidebar() {
@@ -238,12 +285,17 @@ function loadSession(id) {
   document.getElementById('output-wrapper').classList.add('visible');
 }
 
-function clearHistory() {
-  if(confirm("Yakin ingin menghapus semua riwayat?")) {
+/* --- HAPUS HISTORY DI SUPABASE --- */
+async function clearHistory() {
+  if(confirm("Yakin ingin menghapus semua riwayat di akun ini?")) {
+    if (currentUser) {
+      // Hapus data dari tabel yang cocok dengan user_id yang login
+      await supabase.from('user_history').delete().eq('user_id', currentUser.id);
+    }
     historyData = [];
-    localStorage.removeItem('macsus_history');
     toggleSettings();
-    showToast("Riwayat dihapus!");
+    renderSidebar();
+    showToast("Riwayat akun berhasil dihapus!");
   }
 }
 
@@ -309,6 +361,8 @@ async function generateAds() {
     
     document.getElementById('input-container').style.display = 'none';
     let savedDataObj = currentMode === 'ig' ? parseAndShowIG(rawText, contentTitle) : parseAndShowGBisnis(rawText);
+    
+    // Panggil fungsi saveSession ke database
     saveSession(currentMode === 'ig' ? contentTitle : (command || 'Google Bisnis Post'), currentMode, savedDataObj);
     
   } catch (err) {
