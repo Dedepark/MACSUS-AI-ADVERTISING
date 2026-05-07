@@ -3,7 +3,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const splashScreen = document.getElementById('splash-screen');
   const splashVideo = document.getElementById('splash-video');
   
-  // Apapun yang terjadi, layar putih WAJIB hilang dalam 2.5 detik
   setTimeout(() => {
     if (splashScreen) splashScreen.classList.add('hidden');
   }, 2500);
@@ -29,7 +28,6 @@ window.addEventListener('DOMContentLoaded', () => {
 const SUPABASE_URL = 'https://kgwelybjmxvvwckyewfu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtnd2VseWJqbXh2dndja3lld2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwOTc0MTMsImV4cCI6MjA5MzY3MzQxM30.nt2R0iFFgDcd3nnPznPYq_0WHcKhw23AHD9_luiD_4Q';
 
-// UBAH NAMA VARIABEL JADI supabaseClient AGAR TIDAK BENTROK DENGAN CDN
 let supabaseClient = null;
 let currentUser = null;
 
@@ -84,14 +82,13 @@ if (supabaseClient) {
         currentUser = session.user;
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('user-email-display').innerText = currentUser.email;
-        // Tarik riwayat user dari Supabase saat berhasil login
         await fetchUserHistory(); 
       } else {
         document.getElementById('auth-screen').classList.remove('hidden');
       }
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
-      historyData = []; // Kosongkan riwayat di layar
+      historyData = [];
       renderSidebar();
       document.getElementById('auth-screen').classList.remove('hidden');
       document.getElementById('user-email-display').innerText = 'Content Generator';
@@ -101,21 +98,30 @@ if (supabaseClient) {
 
 async function fetchUserHistory() {
   if (!supabaseClient) return;
-  const { data, error } = await supabaseClient
-    .from('user_history')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(50); 
-  
-  if (!error && data) {
-    historyData = data.map(item => ({
-      id: item.id,
-      title: item.title,
-      mode: item.mode,
-      date: new Date(item.created_at).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }),
-      data: item.data
-    }));
-    renderSidebar();
+  try {
+    const { data, error } = await supabaseClient
+      .from('user_history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50); 
+    
+    if (error) {
+      console.error("Supabase Error (Load History):", error.message);
+      return;
+    }
+    
+    if (data) {
+      historyData = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        mode: item.mode,
+        date: new Date(item.created_at).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }),
+        data: item.data
+      }));
+      renderSidebar();
+    }
+  } catch(err) {
+    console.error("Gagal mengeksekusi load history:", err);
   }
 }
 
@@ -164,9 +170,24 @@ async function handleAuth(action) {
 }
 
 async function handleLogout() {
-  if(supabaseClient) await supabaseClient.auth.signOut();
-  if (document.getElementById('app-sidebar').classList.contains('active')) {
-    toggleSidebar();
+  if(!supabaseClient) return;
+  const btn = document.querySelector('#app-sidebar .btn-danger');
+  
+  try {
+    // Memberikan indikator proses agar UI tidak terasa macet
+    if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Proses Logout...';
+    
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+    
+    if (document.getElementById('app-sidebar').classList.contains('active')) {
+      toggleSidebar();
+    }
+  } catch(err) {
+    alert("Gagal logout: " + err.message);
+    console.error("Logout Error:", err);
+  } finally {
+    if(btn) btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout Akun';
   }
 }
 
@@ -264,27 +285,36 @@ async function saveSession(title, mode, dataObj) {
 
   const realTitle = title || (mode === 'gbisnis' ? 'Google Bisnis Post' : 'Tanpa Judul');
   
-  const { data, error } = await supabaseClient
-    .from('user_history')
-    .insert([{ 
-      user_id: currentUser.id, 
-      title: realTitle, 
-      mode: mode, 
-      data: dataObj 
-    }])
-    .select();
+  try {
+    const { data, error } = await supabaseClient
+      .from('user_history')
+      .insert([{ 
+        user_id: currentUser.id, 
+        title: realTitle, 
+        mode: mode, 
+        data: dataObj 
+      }])
+      .select();
 
-  if (!error && data && data.length > 0) {
-    const item = data[0];
-    historyData.unshift({ 
-      id: item.id, 
-      title: item.title, 
-      mode: item.mode, 
-      date: new Date(item.created_at).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }), 
-      data: item.data 
-    });
-    if(historyData.length > 50) historyData.pop();
-    renderSidebar();
+    if (error) {
+      console.error("Gagal Save History:", error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const item = data[0];
+      historyData.unshift({ 
+        id: item.id, 
+        title: item.title, 
+        mode: item.mode, 
+        date: new Date(item.created_at).toLocaleString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }), 
+        data: item.data 
+      });
+      if(historyData.length > 50) historyData.pop();
+      renderSidebar();
+    }
+  } catch(err) {
+    console.error("Sistem error saat save history:", err);
   }
 }
 
@@ -344,16 +374,24 @@ async function clearHistory() {
 async function fetchGeminiKey() {
   if(!supabaseClient) throw new Error("Sistem database belum terhubung dengan baik.");
   
-  const { data, error } = await supabaseClient
-    .from('app_settings')
-    .select('key_value')
-    .eq('key_name', 'gemini_api')
-    .single();
+  try {
+    const { data, error } = await supabaseClient
+      .from('app_settings')
+      .select('key_value')
+      .eq('key_name', 'gemini_api')
+      .single();
 
-  if (error || !data) {
-    throw new Error('Gagal mengambil API Key dari database server.');
+    if (error) {
+      console.error("Supabase Error (Fetch Key):", error.message);
+      throw new Error("Gagal mengambil kunci API. Pastikan RLS di tabel app_settings mengizinkan akses READ.");
+    }
+    
+    if (!data) throw new Error("API Key tidak ditemukan di dalam database.");
+    
+    return data.key_value;
+  } catch(err) {
+    throw new Error(err.message);
   }
-  return data.key_value;
 }
 
 /* --- MAIN GENERATE FUNCTION --- */
@@ -394,11 +432,14 @@ async function generateAds() {
       }
     );
     
-    if (!response.ok) throw new Error(`Error ${response.status}: ${await response.text()}`);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Error dari Google API: ${errText}`);
+    }
     
     const data = await response.json();
     let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!rawText) throw new Error('Respons kosong dari API.');
+    if (!rawText) throw new Error('Respons kosong dari AI.');
     rawText = rawText.replace(/\*\*/g, '');
     
     document.getElementById('input-container').style.display = 'none';
@@ -408,8 +449,11 @@ async function generateAds() {
     
   } catch (err) {
     const msg = err.message.toLowerCase();
-    if (msg.includes('503') || msg.includes('429')) setError('<strong>Antrian AI lagi penuh!</strong><br>Coba lagi dalam ~1 menit ya.');
-    else setError('Terjadi kesalahan: ' + err.message);
+    if (msg.includes('503') || msg.includes('429')) {
+      setError('<strong>Antrian AI lagi penuh!</strong><br>Coba lagi dalam ~1 menit ya.');
+    } else {
+      setError('Terjadi kesalahan: ' + err.message);
+    }
   } finally {
     setLoading(false);
   }

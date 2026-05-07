@@ -1,6 +1,5 @@
-// PENTING: Tiap kali kamu update codingan dan mau upload ke Netlify, 
-// ganti angka v2 ini jadi v3, v4, dan seterusnya.
-const CACHE_NAME = "macsus-ai-cache-v20"; 
+// Naikkan versi cache agar browser otomatis menghapus cache yang nge-bug
+const CACHE_NAME = "macsus-ai-cache-v22"; 
 
 const urlsToCache = [
   "./",
@@ -11,40 +10,36 @@ const urlsToCache = [
   "./manifest.json"
 ];
 
-// Install Service Worker & langsung maksa aktif
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // Memaksa SW baru untuk langsung jalan tanpa nunggu user tutup tab
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
-// Activate: Ini kunci buat NGEHAPUS CACHE LAMA
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Kalau nama cache-nya beda sama CACHE_NAME yang baru, hapus!
-          if (cacheName !== CACHE_NAME) {
-            console.log("Menghapus cache lama:", cacheName);
-            return caches.delete(cacheName);
-          }
+          if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
         })
       );
     })
   );
-  self.clients.claim(); // Langsung ambil alih kontrol halaman klien
+  self.clients.claim();
 });
 
-// Fetch dari Cache atau Network
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cache jika ada, jika tidak fetch dari internet
-      return response || fetch(event.request);
-    })
-  );
+  const url = new URL(event.request.url);
+  
+  // PERBAIKAN KRUSIAL: HANYA cache file dari domain lokal. 
+  // JANGAN intercept API Supabase atau Google agar tidak nge-hang!
+  if (url.origin === location.origin) {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request);
+      })
+    );
+  }
 });
