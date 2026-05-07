@@ -54,6 +54,11 @@ function newSession() {
   document.getElementById('contentTitle').value = '';
   document.getElementById('reportData').value = '';
   document.getElementById('command').value = '';
+  
+  // Reset filter ke default
+  if(document.getElementById('gb-name-filter')) document.getElementById('gb-name-filter').value = 'first';
+  if(document.getElementById('gb-price-filter')) document.getElementById('gb-price-filter').value = 'no';
+  
   if (document.getElementById('app-sidebar').classList.contains('active')) {
     toggleSidebar();
   }
@@ -243,7 +248,19 @@ async function generateAds() {
   if (currentMode === 'ig') {
     prompt = `Anda adalah asisten periklanan senior untuk Macsus Company. DATA PERUSAHAAN (wajib selalu digunakan): - Nama: Macsus Company - Layanan: Jasa servis & perbaikan laptop (hardware + software) di Surabaya & Sidoarjo - Hardware: Overheat treatment, ganti thermal paste, penggantian layar, perbaikan motherboard, water spill treatment - Software: Optimasi sistem, install ulang, remove virus - Keunggulan: Teknisi ahli, pengerjaan cepat & transparan, harga terjangkau, free diagnosa - Alamat: Jl. Keputih Makam Blk. E No.26, Keputih, Kec. Sukolilo, Surabaya, Jawa Timur 60295 - WhatsApp: 0858-5256-1993 - Hashtag utama: #MacsusCompany #ServiceLaptopSurabaya INPUT: - Layanan hari ini: ${serviceInfo} - Judul/Topik Konten IG: ${contentTitle} ${command ? `- Catatan tambahan: ${command}` : ''} TUGAS: Buat 3 output berikut secara lengkap dan dipisah dengan jelas: ===OUTPUT 1: PROMPT NOTEBOOKLM=== Tulis prompt instruksi untuk NotebookLM agar membuat konten slide IG vertikal (rasio 4:5 / Portrait) mengatasnamakan Macsus Company. Prompt harus menyebut nama dokumen sumber yang akan dibuat di Output 2, menyebutkan hook yang kuat, poin-poin konten utama, dan CTA layanan Macsus yang relevan. ===OUTPUT 2: DOKUMEN SUMBER DATA=== Buat dokumen sumber teks teknis dengan nama "DIAGNOSA [TOPIK] MACSUS COMPANY" yang akan digunakan sebagai basis data di NotebookLM. Isi dengan: analisis gejala/masalah, langkah diagnosa mandiri yang bisa dilakukan user, value preposition layanan Macsus untuk masalah ini. Format dengan bullet points yang informatif. ===OUTPUT 3: CAPTION INSTAGRAM=== Buat caption IG yang menarik dengan struktur: Headline all-caps dengan emoji relevan, paragraf pembuka yang relatable dan bikin orang penasaran, numbered list langkah atau tips praktis, paragraf solusi Macsus dengan checklist, info lokasi & WhatsApp, dan hashtag yang relevan (min. 10 hashtag). Pastikan ketiga output terpisah jelas dengan header masing-masing. PENTING: DILARANG KERAS menggunakan markdown bintang ganda (**) untuk menebalkan teks. Gunakan teks biasa saja, tapi kamu boleh menggunakan emoji.`;
   } else {
-    prompt = `Kamu adalah seorang IT consultant spesialis laptop dan PC. Kamu diminta membuat storytelling berbasis Google Business untuk Macsus Company dengan ketentuan berikut: - Gaya bahasa Gen Z: santai, relatable, sedikit lebay/hiperbola tapi tetap informatif - Nada: persuasif, menyentuh perasaan pembaca, bikin orang mau langsung ke workshop - Tujuan: meningkatkan income pelanggan Macsus Company dan mendorong kunjungan kantor agar mau maintenance / perbaikan laptop/PC - Maksimal 1500 karakter (hitung dengan ketat, jangan melebihi) - Jangan sebut nama lengkap pelanggan, cukup sebut nama depan atau panggilan akrab saja - Akhiri dengan info Macsus Company: nama, alamat singkat (Keputih, Sukolilo, Surabaya), dan tagline penutup yang memorable DATA REPORT PELANGGAN: ${reportData} ${command ? `\nCatatan tambahan: ${command}` : ''} PENTING: Output hanya berisi teks storytelling-nya saja, langsung tanpa label/header apapun. Mulai langsung dari kalimat pembuka yang hook. DILARANG KERAS menggunakan markdown bintang ganda (**) untuk menebalkan teks. Gunakan teks biasa saja, tapi kamu boleh menggunakan emoji.`;
+    // Ambil value filter
+    const gbNameFilter = document.getElementById('gb-name-filter') ? document.getElementById('gb-name-filter').value : 'first';
+    const gbPriceFilter = document.getElementById('gb-price-filter') ? document.getElementById('gb-price-filter').value : 'no';
+    
+    let nameInstruction = gbNameFilter === 'full' 
+      ? "- Sebutkan NAMA LENGKAP pelanggan sesuai data." 
+      : "- Jangan sebut nama lengkap pelanggan, cukup sebut NAMA DEPAN atau panggilan akrab saja.";
+      
+    let priceInstruction = gbPriceFilter === 'yes'
+      ? "- Sebutkan BIAYA atau HARGA perbaikan jika ada di dalam data."
+      : "- DILARANG KERAS menyebutkan biaya atau harga perbaikan sama sekali.";
+
+    prompt = `Kamu adalah seorang IT consultant spesialis laptop dan PC. Kamu diminta membuat storytelling berbasis Google Business untuk Macsus Company dengan ketentuan berikut: - Gaya bahasa Gen Z: santai, relatable, sedikit lebay/hiperbola tapi tetap informatif - Nada: persuasif, menyentuh perasaan pembaca, bikin orang mau langsung ke workshop - Tujuan: meningkatkan income pelanggan Macsus Company dan mendorong kunjungan kantor agar mau maintenance / perbaikan laptop/PC - Maksimal 1500 karakter (hitung dengan ketat, jangan melebihi) ${nameInstruction} ${priceInstruction} - Akhiri dengan info Macsus Company: nama, alamat singkat (Keputih, Sukolilo, Surabaya), dan tagline penutup yang memorable DATA REPORT PELANGGAN: ${reportData} ${command ? `\nCatatan tambahan: ${command}` : ''} PENTING: Output hanya berisi teks storytelling-nya saja, langsung tanpa label/header apapun. Mulai langsung dari kalimat pembuka yang hook. DILARANG KERAS menggunakan markdown bintang ganda (**) untuk menebalkan teks. Gunakan teks biasa saja, tapi kamu boleh menggunakan emoji.`;
   }
 
   try {
@@ -408,7 +425,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* --- LOGIKA DOWNLOAD APK --- */
 function downloadAPK() {
-  // Ubah USERNAME dan NAMA_REPO sesuai link GitHub kamu!
   const githubReleaseUrl = "https://github.com/DedePark/MACSUS-AI-ADVERTISING/releases/download/latest/macsus-ai.apk";
   window.location.href = githubReleaseUrl;
 }

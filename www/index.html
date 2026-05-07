@@ -15,7 +15,6 @@
   <link rel="apple-touch-icon" href="ikon.png">
   <link rel="manifest" href="manifest.json">
   
-  <!-- Font Profesional: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -51,11 +50,9 @@
     </button>
   </div>
   <div class="sidebar-body">
-    <!-- Tombol Sesi Baru -->
     <button class="btn-new-session" onclick="newSession()">
       <i class="fas fa-plus"></i> Buat Sesi Baru
     </button>
-    <!-- List Riwayat -->
     <div id="history-list"></div>
   </div>
 </aside>
@@ -75,7 +72,6 @@
     <button class="btn-pwa" id="btn-install-pwa" style="display: none;" onclick="installPWA()">
       <i class="fas fa-download"></i> Install PWA
     </button>
-    <!-- TOMBOL INSTALL APK -->
     <button class="btn-pwa" id="btn-download-apk" style="margin-top:10px; background:var(--green-lo); border-color:var(--green); color:var(--green);" onclick="downloadAPK()">
       <i class="fab fa-android"></i> Install APK
     </button>
@@ -83,7 +79,6 @@
       <i class="fas fa-trash-alt"></i> Hapus Semua Riwayat
     </button>
     
-    <!-- Bagian Narsis Corporate -->
     <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--b1); text-align: center;">
       <p style="font-family: var(--f-mono); font-size: 12px; font-weight: 700; color: var(--t2); letter-spacing: 0.15em; margin-bottom: 6px;">
         BY : DEDE
@@ -96,7 +91,6 @@
 </div>
 
 <main class="app-main">
-  <!-- Container Input yang akan disembunyikan saat hasil AI muncul -->
   <div id="input-container">
     <p class="section-eyebrow">Pilih Mode Konten</p>
     <div class="mode-grid">
@@ -139,7 +133,21 @@
       <div class="panel-body">
         <div class="field">
           <label class="field-label">Data Report Pelanggan</label>
-          <textarea id="reportData" rows="10" placeholder="Paste struktur data report di sini... Contoh:&#10;REPORT:&#10;ID Pelanggan : M20816&#10;Nama Pelanggan : Tyas CS Wisma Tropodo ..."></textarea>
+          <textarea id="reportData" rows="7" placeholder="Paste struktur data report di sini... Contoh:&#10;REPORT:&#10;ID Pelanggan : M20816&#10;Nama Pelanggan : Tyas CS Wisma Tropodo ..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Format Nama Pelanggan</label>
+          <select id="gb-name-filter">
+            <option value="first">Nama Depan Saja (Default)</option>
+            <option value="full">Sebutkan Nama Lengkap</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Informasi Harga & Biaya</label>
+          <select id="gb-price-filter">
+            <option value="no">Sembunyikan Harga (Default)</option>
+            <option value="yes">Sebutkan Nominal Biaya</option>
+          </select>
         </div>
       </div>
     </div>
@@ -159,7 +167,6 @@
     </button>
   </div>
 
-  <!-- Loading & Error -->
   <div class="loading-card" id="loading-box">
     <div class="spinner"></div>
     <div class="loading-text">
@@ -172,7 +179,6 @@
     <span id="error-text"></span>
   </div>
 
-  <!-- Output Area -->
   <div class="output-area" id="output-wrapper">
     <div class="output-topbar">
       <div>
